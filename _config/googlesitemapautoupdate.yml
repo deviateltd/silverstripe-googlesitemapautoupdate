@@ -1,0 +1,10 @@
+---
+Name: googlesitemapautoupdate
+After:
+  - 'framework/*'
+  - 'cms/*'
+  - 'queuedjobs/*'
+---
+SiteTree:
+  extensions:
+   - SitemapUpdator
