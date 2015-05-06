@@ -1,11 +1,16 @@
 <?php
 /**
- * Author: Normann
- * Date: 7/08/14
- * Time: 1:45 PM
+ * 
+ * @author Deviate Ltd 2015 http://www.deviate.net.nz
+ * @package silverstripe-googlesitemapautoupdate
  */
-
-class SitemapUpdator extends SiteTreeExtension {
+class SitemapUpdater extends SiteTreeExtension {
+    
+    /**
+     * 
+     * @param type $original
+     * @return mixed void | null
+     */
     public function onAfterPublish(&$original) {
         $list = QueuedJobDescriptor::get()->filter(array(
             'JobStatus'		=> array(QueuedJob::STATUS_INIT, QueuedJob::STATUS_RUN), //Initialising and Running
@@ -30,8 +35,8 @@ class SitemapUpdator extends SiteTreeExtension {
                 return;
             }
 
-            // if no such a job existing, create a new one for the first time, and run immediately
-            //first remove all the legacy job which might be in these status:
+            // If no such a job existing, create a new one for the first time, and run immediately
+            // But first remove all legacy jobs which might be of the following statuses:
             /**
              * New (but Start data somehow is less than now)
              * Waiting
@@ -43,7 +48,9 @@ class SitemapUpdator extends SiteTreeExtension {
             $list = QueuedJobDescriptor::get()->filter(array(
                 'Implementation'=> 'GenerateGoogleSitemapJob',
             ));
-            if($list && $list->count()) $list->removeAll();
+            if($list && $list->count()) {
+                $list->removeAll();
+            }
 
             $job = new GenerateGoogleSitemapJob();
             singleton('QueuedJobService')->queueJob($job);

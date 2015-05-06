@@ -7,4 +7,4 @@ After:
 ---
 SiteTree:
   extensions:
-   - SitemapUpdator
+   - SitemapUpdater
