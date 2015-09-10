@@ -1,18 +1,18 @@
 <?php
 /**
- * 
- * A simple {@link SiteTreeExtension} that invokes a QueuedJob to
- * physically perform the sitemap.xml update.
- * 
+ *
+ * A simple {@link SiteTreeExtension} that invokes a {@link QueuedJob} to
+ * physically generate and update a sitemap.xml file on the filesystem.
+ *
  * @author Deviate Ltd 2014-2015 http://www.deviate.net.nz
  * @package silverstripe-googlesitemapautoupdate
  */
 class SitemapUpdater extends SiteTreeExtension {
-    
+
     /**
-     * 
-     * Create a new GenerateGoogleSitemapJob after each CMS write operation.
-     * 
+     *
+     * Create a new {@link GenerateGoogleSitemapJob} after each CMS write manipulation.
+     *
      * @param {@inheritdoc}
      * @return mixed void | null
      */
@@ -20,31 +20,31 @@ class SitemapUpdater extends SiteTreeExtension {
         if(!class_exists('AbstractQueuedJob')) {
             return;
         }
-        
+
         // Get all "running" GenerateGoogleSitemapJob's
         $list = QueuedJobDescriptor::get()->filter(array(
             'Implementation'=> 'GenerateGoogleSitemapJob',
             'JobStatus'		=> array(QueuedJob::STATUS_INIT, QueuedJob::STATUS_RUN)
         ));
-        
+
         $existingJob = $list ? $list->first() : null;
         if($existingJob && $existingJob->exists()) {
             // Do nothing. There's a job for generating the sitemap already running
         } else {
-            $where = '"StartAfter" > \'' . date('Y-m-d H:i:s').'\'';
+            $where = '"StartAfter" > \'' . date('Y-m-d H:i:s') . '\'';
             $list = QueuedJobDescriptor::get()->where($where);
             $list = $list->filter(array(
                 'Implementation'=> 'GenerateGoogleSitemapJob',
                 'JobStatus'		=> array(QueuedJob::STATUS_NEW),
             ));
             $list = $list->sort('ID', 'ASC');
-            
+
             if($list && $list->count()) {
                 // Execute immediately
                 $existingJob = $list->first();
                 $existingJob->StartAfter = date('Y-m-d H:i:s');
                 $existingJob->write();
-                return;
+				return;
             }
 
             // If no such a job existing, create a new one for the first time, and run immediately
@@ -60,7 +60,7 @@ class SitemapUpdater extends SiteTreeExtension {
             $list = QueuedJobDescriptor::get()->filter(array(
                 'Implementation' => 'GenerateGoogleSitemapJob',
             ));
-            
+
             if($list && $list->count()) {
                 $list->removeAll();
             }
