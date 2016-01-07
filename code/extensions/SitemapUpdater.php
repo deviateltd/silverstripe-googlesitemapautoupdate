@@ -7,7 +7,8 @@
  * @author Deviate Ltd 2014-2015 http://www.deviate.net.nz
  * @package silverstripe-googlesitemapautoupdate
  */
-class SitemapUpdater extends SiteTreeExtension {
+class SitemapUpdater extends SiteTreeExtension
+{
 
     /**
      *
@@ -16,35 +17,36 @@ class SitemapUpdater extends SiteTreeExtension {
      * @param {@inheritdoc}
      * @return mixed void | null
      */
-    public function onAfterPublish(&$original) {
-        if(!class_exists('AbstractQueuedJob')) {
+    public function onAfterPublish(&$original)
+    {
+        if (!class_exists('AbstractQueuedJob')) {
             return;
         }
 
         // Get all "running" GenerateGoogleSitemapJob's
         $list = QueuedJobDescriptor::get()->filter(array(
             'Implementation'=> 'GenerateGoogleSitemapJob',
-            'JobStatus'		=> array(QueuedJob::STATUS_INIT, QueuedJob::STATUS_RUN)
+            'JobStatus'        => array(QueuedJob::STATUS_INIT, QueuedJob::STATUS_RUN)
         ));
 
         $existingJob = $list ? $list->first() : null;
-        if($existingJob && $existingJob->exists()) {
+        if ($existingJob && $existingJob->exists()) {
             // Do nothing. There's a job for generating the sitemap already running
         } else {
             $where = '"StartAfter" > \'' . date('Y-m-d H:i:s') . '\'';
             $list = QueuedJobDescriptor::get()->where($where);
             $list = $list->filter(array(
                 'Implementation'=> 'GenerateGoogleSitemapJob',
-                'JobStatus'		=> array(QueuedJob::STATUS_NEW),
+                'JobStatus'        => array(QueuedJob::STATUS_NEW),
             ));
             $list = $list->sort('ID', 'ASC');
 
-            if($list && $list->count()) {
+            if ($list && $list->count()) {
                 // Execute immediately
                 $existingJob = $list->first();
                 $existingJob->StartAfter = date('Y-m-d H:i:s');
                 $existingJob->write();
-				return;
+                return;
             }
 
             // If no such a job existing, create a new one for the first time, and run immediately
@@ -61,7 +63,7 @@ class SitemapUpdater extends SiteTreeExtension {
                 'Implementation' => 'GenerateGoogleSitemapJob',
             ));
 
-            if($list && $list->count()) {
+            if ($list && $list->count()) {
                 $list->removeAll();
             }
 
